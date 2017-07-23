@@ -6,13 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <StackPanel Height="640" VerticalAlignment="Bottom">
-            <TextBlock x:Name="textBlock" TextWrapping="Wrap" Text="WPTaskClient" HorizontalAlignment="Center" Margin="10" FontSize="32"/>
-            <Button x:Name="button_add" Content="Add Task" HorizontalAlignment="Center" Margin="10"/>
-            <Button x:Name="button_sync" Content="Sync" HorizontalAlignment="Center" Margin="10"/>
-            <Button x:Name="button_settings" Content="Settings" HorizontalAlignment="Center" Margin="10"/>
-        </StackPanel>
-    </Grid>
+    <Page.BottomAppBar>
+        <CommandBar>
+            <AppBarButton Icon="Add" Label="New"/>
+            <AppBarButton Icon="Sync" Label="Sync"/>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Icon="Setting" Label="Settings"/>
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
 </Page>
