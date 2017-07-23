@@ -11,7 +11,7 @@
             <AppBarButton Icon="Add" Label="New"/>
             <AppBarButton Icon="Sync" Label="Sync"/>
             <CommandBar.SecondaryCommands>
-                <AppBarButton Icon="Setting" Label="Settings"/>
+                <AppBarButton Icon="Setting" Label="Settings" Click="ButtonSettings_Click"/>
             </CommandBar.SecondaryCommands>
         </CommandBar>
     </Page.BottomAppBar>
