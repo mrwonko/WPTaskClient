@@ -8,6 +8,11 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <StackPanel Height="640" VerticalAlignment="Bottom">
+            <TextBlock x:Name="textBlock" TextWrapping="Wrap" Text="WPTaskClient" HorizontalAlignment="Center" Margin="10" FontSize="32"/>
+            <Button x:Name="button_add" Content="Add Task" HorizontalAlignment="Center" Margin="10"/>
+            <Button x:Name="button_sync" Content="Sync" HorizontalAlignment="Center" Margin="10"/>
+            <Button x:Name="button_settings" Content="Settings" HorizontalAlignment="Center" Margin="10"/>
+        </StackPanel>
     </Grid>
 </Page>
