@@ -8,7 +8,7 @@
     mc:Ignorable="d">
 
     <StackPanel Padding="20" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <TextBox x:Name="taskDescription" TextWrapping="Wrap" IsSpellCheckEnabled="True" IsTextPredictionEnabled="True" PlaceholderText="Task" AcceptsReturn="True"/>
+        <TextBox x:Name="taskDescription" TextWrapping="Wrap" IsSpellCheckEnabled="True" IsTextPredictionEnabled="True" PlaceholderText="Task"/>
     </StackPanel>
 
     <Page.BottomAppBar>
