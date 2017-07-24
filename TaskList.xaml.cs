@@ -31,5 +31,10 @@ namespace WPTaskClient
         {
             this.Frame.Navigate(typeof(SettingsPage));
         }
+
+        private void ButtonNew_Click(object sender, RoutedEventArgs e)
+        {
+            this.Frame.Navigate(typeof(NewTaskPage));
+        }
     }
 }
