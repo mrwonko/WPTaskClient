@@ -58,9 +58,13 @@ namespace WPTaskClient
 
             public Task(Guid uuid, Status status, string description, Timestamp entered, Timestamp lastModified, ImmutableList<string> tags, ImmutableDictionary<string, Json.IJsonValue> additionalAttributes)
             {
+                if (description == "")
+                {
+                    throw new System.ArgumentException("description must not be empty", "description");
+                }
                 if (tags.Any(tag => tag.Any(char.IsWhiteSpace)))
                 {
-                    throw new System.ArgumentException("tag contains whitespace", "tags");
+                    throw new System.ArgumentException("tag must not contain whitespace", "tags");
                 }
                 this.uuid = uuid;
                 this.status = status;
