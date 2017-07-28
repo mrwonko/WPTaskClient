@@ -30,6 +30,7 @@ namespace WPTaskClient
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            Storage.SqliteStorage.Init();
         }
 
         /// <summary>

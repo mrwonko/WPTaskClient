@@ -13,7 +13,7 @@
 
     <Page.BottomAppBar>
         <CommandBar>
-            <AppBarButton Icon="Save" Label="Save"/>
+            <AppBarButton x:Name="saveButton" Icon="Save" Label="Save" Click="ButtonSave_Click"/>
         </CommandBar>
     </Page.BottomAppBar>
 </Page>

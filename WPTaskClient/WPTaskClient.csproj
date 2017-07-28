@@ -103,6 +103,7 @@
     <Compile Include="SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Storage\SqliteStorage.cs" />
     <Compile Include="TaskList.xaml.cs">
       <DependentUpon>TaskList.xaml</DependentUpon>
     </Compile>

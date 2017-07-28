@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -22,7 +23,7 @@ namespace WPTaskClient
     {
         public NewTaskPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -45,16 +46,38 @@ namespace WPTaskClient
         private void OnBackRequested(object sender,
    Windows.UI.Core.BackRequestedEventArgs e)
         {
-            Frame rootFrame = Window.Current.Content as Frame;
-            if (rootFrame == null)
-                return;
-
             // Navigate back if possible, and if the event has not 
             // already been handled .
-            if (rootFrame.CanGoBack && e.Handled == false)
+            if (Window.Current.Content is Frame rootFrame && rootFrame.CanGoBack && e.Handled == false)
             {
                 e.Handled = true;
                 rootFrame.GoBack();
+            }
+        }
+
+        // TODO: user-defined tags
+        private static readonly ImmutableList<string> defaultTags = new List<string>() { "new" }.ToImmutableList();
+
+        async private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        {
+            var task = Data.Task.New(taskDescription.Text, defaultTags);
+            saveButton.IsEnabled = false;
+            try
+            {
+                // TODO: handle failure
+                await Storage.SqliteStorage.UpsertTask(task);
+            }
+            finally
+            {
+                saveButton.IsEnabled = true;
+            }
+            if (Window.Current.Content is Frame rootFrame && rootFrame.CanGoBack)
+            {
+                rootFrame.GoBack();
+            }
+            else
+            {
+                Frame.Navigate(typeof(TaskListPage));
             }
         }
     }
