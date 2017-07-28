@@ -12,6 +12,14 @@ namespace WPTaskClient
     {
         public class Task
         {
+            public class ByLastModified : IComparer<Task>
+            {
+                int IComparer<Task>.Compare(Task x, Task y)
+                {
+                    return x.lastModified.CompareTo(y.lastModified);
+                }
+            }
+
             public enum Status
             {
                 Pending,
@@ -21,14 +29,14 @@ namespace WPTaskClient
                 Recurring,
             }
 
-            private static readonly Dictionary<string, Status> statusLUT = new Dictionary<string, Status>
+            private static readonly ImmutableDictionary<string, Status> statusLUT = new Dictionary<string, Status>
             {
                 { "pending", Status.Pending },
                 { "deleted", Status.Deleted },
                 { "completed", Status.Completed },
                 { "waiting", Status.Waiting },
                 { "recurring", Status.Recurring },
-            };
+            }.ToImmutableDictionary();
 
             private readonly Guid uuid;
             private readonly Status status;
@@ -44,6 +52,9 @@ namespace WPTaskClient
                 ImmutableList.Create<string>();
             private static ImmutableDictionary<string, Json.IJsonValue> noAdditionalAttributes =
                 ImmutableDictionary.Create<string, Json.IJsonValue>();
+
+            public Guid Uuid => uuid;
+            public string Description => description;
 
             public Task(Guid uuid, Status status, string description, Timestamp entered, Timestamp lastModified, ImmutableList<string> tags, ImmutableDictionary<string, Json.IJsonValue> additionalAttributes)
             {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WPTaskClient.Data
 {
-    public class Timestamp
+    public class Timestamp : IComparable<Timestamp>
     {
         private static readonly string dateFormat = "yyyyMMdd'T'HHmmss'Z'";
         private DateTime dateTime;
@@ -26,6 +26,11 @@ namespace WPTaskClient.Data
         public override string ToString()
         {
             return this.dateTime.ToString(dateFormat);
+        }
+
+        public int CompareTo(Timestamp other)
+        {
+            return dateTime.CompareTo(other.dateTime);
         }
     }
 }
