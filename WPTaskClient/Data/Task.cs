@@ -19,8 +19,7 @@ namespace WPTaskClient
                 Waiting,
                 Recurring,
             }
-
-            private static readonly string dateFormat = "yyyyMMdd'T'HHmmss'Z'";
+            
             private static readonly Dictionary<string, Status> statusLUT = new Dictionary<string, Status>
             {
                 { "pending", Status.Pending },
@@ -33,30 +32,34 @@ namespace WPTaskClient
             private Guid uuid;
             private Status status;
             private String description;
-            private DateTime lastModified; // UTC
+            private Timestamp entered;
+            private Timestamp lastModified;
+            private static readonly HashSet<string> handledAttributes = new HashSet<string> { "uuid", "status", "description", "entry", "modified" };
             private Dictionary<string, Json.IJsonValue> additionalAttributes;
 
-            public Task(Guid uuid, Status status, string description, DateTime lastModified, Dictionary<string, Json.IJsonValue> additionalAttributes)
+            public Task(Guid uuid, Status status, string description, Timestamp entered, Timestamp lastModified, Dictionary<string, Json.IJsonValue> additionalAttributes)
             {
                 this.uuid = uuid;
                 this.status = status;
                 this.description = description;
+                this.entered = entered;
                 this.lastModified = lastModified;
                 this.additionalAttributes = additionalAttributes;
             }
 
             public static Task New(string description)
             {
-                return new Task(Guid.NewGuid(), Status.Pending, description, DateTime.UtcNow, new Dictionary<string, Json.IJsonValue>());
+                var now = Timestamp.Now;
+                return new Task(Guid.NewGuid(), Status.Pending, description, now, now, new Dictionary<string, Json.IJsonValue>());
             }
 
-            private static readonly HashSet<string> handledAttributes = new HashSet<string> { "uuid", "status", "description", "modified" };
             public static Task FromJson(Json.JsonObject json)
             {
                 var uuid = Guid.Parse(json.GetNamedString("uuid"));
                 var status = statusLUT[json.GetNamedString("status")];
                 var description = json.GetNamedString("description");
-                var lastModified = DateTime.ParseExact(json.GetNamedString("modified"), dateFormat, System.Globalization.CultureInfo.InvariantCulture);
+                var entered = new Timestamp(json.GetNamedString("entry"));
+                var lastModified = new Timestamp(json.GetNamedString("modified"));
                 var additionalAttributes = new Dictionary<string, Json.IJsonValue>();
                 foreach (var entry in json)
                 {
@@ -66,7 +69,7 @@ namespace WPTaskClient
                     }
 
                 }
-                return new Task(uuid, status, description, lastModified, additionalAttributes);
+                return new Task(uuid, status, description, entered, lastModified, additionalAttributes);
             }
 
             public Json.JsonObject ToJson()
@@ -75,7 +78,8 @@ namespace WPTaskClient
                 result.Add("uuid", Json.JsonValue.CreateStringValue(uuid.ToString()));
                 result.Add("status", Json.JsonValue.CreateStringValue(this.status.ToString().ToLower()));
                 result.Add("description", Json.JsonValue.CreateStringValue(this.description));
-                result.Add("modified", Json.JsonValue.CreateStringValue(this.lastModified.ToString(dateFormat)));
+                result.Add("entry", Json.JsonValue.CreateStringValue(this.entered.ToString()));
+                result.Add("modified", Json.JsonValue.CreateStringValue(this.lastModified.ToString()));
                 foreach (var attribute in this.additionalAttributes)
                 {
                     result.Add(attribute.Key, attribute.Value);
