@@ -19,15 +19,18 @@
             <TextBlock Text="TODO: Default Tags"/>
 
             <TextBlock Text="Taskserver" FontWeight="Bold" Margin="0,10,0,0"/>
-            <TextBlock Text="TODO: Address"/>
-            <TextBlock Text="TODO: CA Cert"/>
+            <TextBox x:Name="serverAddress" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" PlaceholderText="Address"/>
+            <local:FileChooser Description="CA Cert">
+            </local:FileChooser>
 
             <TextBlock Text="Authentication" FontWeight="Bold" Margin="0,10,0,0"/>
-            <TextBlock Text="TODO: Organization"/>
-            <TextBlock Text="TODO: User"/>
-            <TextBlock Text="TODO: Key/Password"/>
-            <TextBlock Text="TODO: Private Key"/>
-            <TextBlock Text="TODO: Cert"/>
+            <TextBox x:Name="authOrg" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" PlaceholderText="Organization"/>
+            <TextBox x:Name="authUser" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" PlaceholderText="User"/>
+            <PasswordBox x:Name="authKey" PlaceholderText="Key" />
+            <local:FileChooser x:Name="authPrivateKey" Description="Private Key">
+            </local:FileChooser>
+            <local:FileChooser x:Name="authCert" Description="Cert">
+            </local:FileChooser>
         </StackPanel>
     </ScrollViewer>
 </Page>

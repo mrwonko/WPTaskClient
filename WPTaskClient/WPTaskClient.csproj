@@ -97,6 +97,9 @@
     </Compile>
     <Compile Include="Data\Task.cs" />
     <Compile Include="Data\Timestamp.cs" />
+    <Compile Include="FileChooser.xaml.cs">
+      <DependentUpon>FileChooser.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NewTaskPage.xaml.cs">
       <DependentUpon>NewTaskPage.xaml</DependentUpon>
     </Compile>
@@ -130,6 +133,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="FileChooser.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="NewTaskPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
