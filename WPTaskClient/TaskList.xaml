@@ -7,9 +7,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Padding="20" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="Tasks will go here, eventually."/>
-    </StackPanel>
+    
+    <ListView Padding="20" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" ItemsSource="{x:Bind Tasks}">
+        <ListView.ItemTemplate>
+            <DataTemplate>
+                <TextBlock Text="{Binding Description}"></TextBlock>
+            </DataTemplate>
+        </ListView.ItemTemplate>
+    </ListView>
     
     <Page.BottomAppBar>
         <CommandBar>

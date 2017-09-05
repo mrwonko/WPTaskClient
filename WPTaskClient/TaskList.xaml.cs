@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -32,9 +34,26 @@ namespace WPTaskClient
             this.Frame.Navigate(typeof(SettingsPage));
         }
 
+        private ObservableCollection<Data.Task> tasks = new ObservableCollection<Data.Task>() { Data.Task.New("loading...", ImmutableList.Create<string>()) };
+
+        public ObservableCollection<Data.Task> Tasks { get { return tasks; } }
+
         private void ButtonNew_Click(object sender, RoutedEventArgs e)
         {
             this.Frame.Navigate(typeof(NewTaskPage));
+        }
+
+        async protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            // TODO handle failure
+            var tasks = await Storage.SqliteStorage.GetTasks();
+            // TODO: is there a simpler way?
+            this.tasks.Clear();
+            foreach(var task in tasks)
+            {
+                this.tasks.Add(task);
+            }
         }
     }
 }
