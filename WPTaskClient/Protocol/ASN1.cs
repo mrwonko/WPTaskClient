@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -117,13 +118,18 @@ namespace WPTaskClient.Protocol.ASN1
         }
     }
 
-    public class Sequence : Element
+    public class Sequence : Element, IEnumerable
     {
         private ICollection<Element> elements = new LinkedList<Element>();
 
         public void Add(Element element)
         {
             elements.Add(element);
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            return elements.GetEnumerator();
         }
 
         public override void Parse(BinaryReader reader)
