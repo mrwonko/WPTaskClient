@@ -90,10 +90,16 @@ namespace WPTaskClient.Protocol.ASN1
     public class Element
     {
         private Header header;
-        public byte[] rawData;
+        private byte[] rawData;
+        public readonly string Name;
 
         public Header Header => header;
         public byte[] RawData => rawData;
+
+        protected Element(string name)
+        {
+            Name = name;
+        }
 
         public virtual void Parse(BinaryReader reader)
         {
@@ -101,19 +107,29 @@ namespace WPTaskClient.Protocol.ASN1
             rawData = reader.ReadBytes(header.Length);
             if (rawData.Length < header.Length)
             {
-                throw new FormatException(string.Format("expected element of length {0} but only has {1} bytes available", header.Length, rawData.Length));
+                throw new FormatException(string.Format("expected '{0}' element of length {1} but only has {2} bytes available", Name, header.Length, rawData.Length));
             }
         }
     }
 
     public class Integer : Element
     {
+        public Integer(string name) : base(name) { }
+
         public override void Parse(BinaryReader reader)
         {
             base.Parse(reader);
             if (Header.Type != IdentifierType.Integer)
             {
-                throw new FormatException(string.Format("expected integer, got type {0}", Header.Type));
+                throw new FormatException(string.Format("expected '{0}' integer, got type {1}", Name, Header.Type));
+            }
+            if (Header.Constructed)
+            {
+                throw new FormatException(string.Format("integer '{0}' is constructed", Name));
+            }
+            if (Header.Class != IdentifierClass.Universal)
+            {
+                throw new FormatException(string.Format("integer '{0}' is not universal but {1}", Name, Header.Class));
             }
         }
     }
@@ -121,6 +137,8 @@ namespace WPTaskClient.Protocol.ASN1
     public class Sequence : Element, IEnumerable
     {
         private ICollection<Element> elements = new LinkedList<Element>();
+
+        public Sequence(string name) : base(name) { }
 
         public void Add(Element element)
         {
@@ -137,7 +155,15 @@ namespace WPTaskClient.Protocol.ASN1
             base.Parse(reader);
             if (Header.Type != IdentifierType.Sequence)
             {
-                throw new FormatException(string.Format("expected sequence, got type {0}", Header.Type));
+                throw new FormatException(string.Format("expected '{0}' sequence, got type {1}", Name, Header.Type));
+            }
+            if (!Header.Constructed)
+            {
+                throw new FormatException(string.Format("sequence '{0}' is not constructed", Name));
+            }
+            if( Header.Class != IdentifierClass.Universal)
+            {
+                throw new FormatException(string.Format("sequence '{0}' is not universal but {1}", Name, Header.Class));
             }
             using (var subReader = new BinaryReader(new MemoryStream(RawData)))
             {
