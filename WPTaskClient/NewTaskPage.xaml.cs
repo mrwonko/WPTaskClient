@@ -60,6 +60,7 @@ namespace WPTaskClient
 
         async private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
+            // TODO: Handle exceptions on invalid task
             var task = Data.Task.New(taskDescription.Text, defaultTags);
             saveButton.IsEnabled = false;
             try

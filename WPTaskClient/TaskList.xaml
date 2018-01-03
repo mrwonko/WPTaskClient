@@ -19,7 +19,7 @@
     <Page.BottomAppBar>
         <CommandBar>
             <AppBarButton Icon="Add" Label="New"  Click="ButtonNew_Click"/>
-            <AppBarButton Icon="Sync" Label="Sync"/>
+            <AppBarButton Icon="Sync" Label="Sync" Click="ButtonSync_Click" Name="ButtonSync"/>
             <CommandBar.SecondaryCommands>
                 <AppBarButton Icon="Setting" Label="Settings" Click="ButtonSettings_Click"/>
             </CommandBar.SecondaryCommands>

@@ -104,6 +104,7 @@
       <DependentUpon>NewTaskPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Protocol\ASN1.cs" />
+    <Compile Include="Protocol\RSA.cs" />
     <Compile Include="SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
