@@ -62,15 +62,10 @@ namespace WPTaskClient
         {
             // TODO: Handle exceptions on invalid task
             var task = Data.Task.New(taskDescription.Text, defaultTags);
-            saveButton.IsEnabled = false;
-            try
+            using (new ControlDisabler(saveButton))
             {
                 // TODO: handle failure
                 await Storage.SqliteStorage.UpsertTask(task);
-            }
-            finally
-            {
-                saveButton.IsEnabled = true;
             }
             if (Window.Current.Content is Frame rootFrame && rootFrame.CanGoBack)
             {

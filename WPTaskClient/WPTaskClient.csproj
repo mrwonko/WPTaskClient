@@ -98,8 +98,13 @@
     <Compile Include="CertPasswordContentDialog.xaml.cs">
       <DependentUpon>CertPasswordContentDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Constants.cs" />
+    <Compile Include="ControlDisabler.cs" />
     <Compile Include="Data\Task.cs" />
     <Compile Include="Data\Timestamp.cs" />
+    <Compile Include="ErrorContentDialog.xaml.cs">
+      <DependentUpon>ErrorContentDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FileChooser.xaml.cs">
       <DependentUpon>FileChooser.xaml</DependentUpon>
     </Compile>
@@ -138,6 +143,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="CertPasswordContentDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ErrorContentDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

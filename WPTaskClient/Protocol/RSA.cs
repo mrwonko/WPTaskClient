@@ -20,17 +20,17 @@ namespace WPTaskClient.Protocol
             picker.FileTypeFilter.Add(".pfx");
             var file = await picker.PickSingleFileAsync();
             var fileStream = await file.OpenReadAsync();
-            var contents = new MemoryStream();
-            await fileStream.AsStreamForRead().CopyToAsync(contents);
-            var pfxData = Encoding.ASCII.GetString(contents.ToArray());
+            var pfxData = await new StreamReader(fileStream.AsStreamForRead()).ReadToEndAsync();
             // TODO: verify it contains "-----BEGIN PKCS12-----" - apparently this does not work with binary representations
             var password = "TODO ask user";
             var friendlyName = "TaskClientCert";
             await CertificateEnrollmentManager.ImportPfxDataAsync(pfxData, password, ExportOption.NotExportable, KeyProtectionLevel.NoConsent, InstallOptions.None, friendlyName);
-            
+
             //var appStore = CertificateStores.GetStoreByName(StandardCertificateStoreNames.Personal);
-            var query = new CertificateQuery();
-            query.FriendlyName = friendlyName;
+            var query = new CertificateQuery
+            {
+                FriendlyName = friendlyName
+            };
             var certs = await CertificateStores.FindAllAsync(query);
             foreach (var cert in certs)
             {
