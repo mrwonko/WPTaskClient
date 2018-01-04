@@ -23,6 +23,7 @@ namespace WPTaskClient.Protocol
             var contents = new MemoryStream();
             await fileStream.AsStreamForRead().CopyToAsync(contents);
             var pfxData = Encoding.ASCII.GetString(contents.ToArray());
+            // TODO: verify it contains "-----BEGIN PKCS12-----" - apparently this does not work with binary representations
             var password = "TODO ask user";
             var friendlyName = "TaskClientCert";
             await CertificateEnrollmentManager.ImportPfxDataAsync(pfxData, password, ExportOption.NotExportable, KeyProtectionLevel.NoConsent, InstallOptions.None, friendlyName);

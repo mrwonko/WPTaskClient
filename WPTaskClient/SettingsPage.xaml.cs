@@ -56,5 +56,14 @@ namespace WPTaskClient
                 rootFrame.GoBack();
             }
         }
+
+        private async void ButtonClientCert_Click(object sender, RoutedEventArgs e)
+        {
+            var passwordDialog = new CertPasswordContentDialog();
+            if( await passwordDialog.ShowAsync() == ContentDialogResult.Primary)
+            {
+                var pw = passwordDialog.Password;
+            }
+        }
     }
 }

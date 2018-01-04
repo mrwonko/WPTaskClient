@@ -27,10 +27,7 @@
             <TextBox x:Name="authOrg" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" PlaceholderText="Organization"/>
             <TextBox x:Name="authUser" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" PlaceholderText="User"/>
             <PasswordBox x:Name="authKey" PlaceholderText="Key" />
-            <local:FileChooser x:Name="authPrivateKey" Description="Private Key">
-            </local:FileChooser>
-            <local:FileChooser x:Name="authCert" Description="Cert">
-            </local:FileChooser>
+            <Button Content="Load Client Certificate" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Click="ButtonClientCert_Click"/>
         </StackPanel>
     </ScrollViewer>
 </Page>
