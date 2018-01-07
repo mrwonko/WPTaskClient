@@ -39,6 +39,12 @@ namespace WPTaskClient
     OnBackRequested;
             // enable back-button even on Desktop for this page
             SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility = AppViewBackButtonVisibility.Visible;
+            var settings = Storage.Settings.Load();
+            serverAddress.Text = settings.Server;
+            authOrg.Text = settings.Organization;
+            authUser.Text = settings.User;
+            authKey.Password = settings.Key;
+            clientCert = null;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -112,6 +118,37 @@ namespace WPTaskClient
                 // everything looks good, remember values for saving
                 clientCert = certData;
                 clientCertPassphrase = pass;
+            }
+        }
+
+        private async void ButtonSave_Click(object sender, RoutedEventArgs args)
+        {
+            using (new ControlDisabler(ButtonSave))
+            {
+                if (clientCert != null)
+                {
+                    try
+                    {
+                        await CertificateEnrollmentManager.ImportPfxDataAsync(clientCert, clientCertPassphrase, ExportOption.NotExportable, KeyProtectionLevel.NoConsent, InstallOptions.None, Constants.ClientCertFriendlyName);
+                        clientCert = null;
+                    }
+                    catch (Exception e)
+                    {
+                        await new ErrorContentDialog(e).ShowAsync();
+                        return;
+                    }
+                }
+                var settings = new Storage.Settings {
+                    Server = serverAddress.Text,
+                    Organization = authOrg.Text,
+                    User = authUser.Text,
+                    Key = authKey.Password,
+                };
+                settings.Store();
+                if (Window.Current.Content is Frame rootFrame && rootFrame.CanGoBack)
+                {
+                    rootFrame.GoBack();
+                }
             }
         }
     }

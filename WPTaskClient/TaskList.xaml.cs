@@ -9,6 +9,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Networking;
 using Windows.Networking.Sockets;
+using Windows.Security.Cryptography.Certificates;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -43,17 +44,30 @@ namespace WPTaskClient
 
         private async void ButtonSync_Click(object sender, RoutedEventArgs e)
         {
-            this.ButtonSync.IsEnabled = false;
-            var endpoint = new EndpointPair(null, "", new HostName("mrwonko.de"), "53589");
-            using (var stream = new StreamSocket())
+            using (new ControlDisabler(ButtonSync))
             {
-                stream.Control.ClientCertificate = await RSA.ReadCertificate();
-                // TODO: Handle exceptions
-                // TODO: add timeout https://docs.microsoft.com/en-us/previous-versions/windows/apps/jj710176(v=win.10)
-                await stream.ConnectAsync(endpoint, SocketProtectionLevel.Tls12);
-                // TODO: listen for response in background, see https://docs.microsoft.com/en-us/windows/uwp/launch-resume/support-your-app-with-background-tasks & https://docs.microsoft.com/en-us/windows/uwp/networking/network-communications-in-the-background
+                var settings = Storage.Settings.Load();
+                if(!settings.Valid)
+                {
+                    await new ErrorContentDialog("Sync not configured, please adjust settings.").ShowAsync();
+                    return;
+                }
+                var certs = await CertificateStores.FindAllAsync(new CertificateQuery { FriendlyName = Constants.ClientCertFriendlyName });
+                var cert = certs.Where(c => c.HasPrivateKey).FirstOrDefault();
+                if( cert == null)
+                {
+                    await new ErrorContentDialog("No client certificate configured, please adjust settings.").ShowAsync();
+                    return;
+                }
+                using (var stream = new StreamSocket())
+                {
+                    stream.Control.ClientCertificate = cert;
+                    // TODO: Handle exceptions
+                    // TODO: add timeout https://docs.microsoft.com/en-us/previous-versions/windows/apps/jj710176(v=win.10)
+                    await stream.ConnectAsync(settings.Endpoint, SocketProtectionLevel.Tls12);
+                    // TODO: listen for response in background, see https://docs.microsoft.com/en-us/windows/uwp/launch-resume/support-your-app-with-background-tasks & https://docs.microsoft.com/en-us/windows/uwp/networking/network-communications-in-the-background
+                }
             }
-            this.ButtonSync.IsEnabled = true;
         }
 
         private void ButtonNew_Click(object sender, RoutedEventArgs e)
