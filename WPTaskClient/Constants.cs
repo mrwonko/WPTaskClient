@@ -10,5 +10,6 @@ namespace WPTaskClient
     {
         public const string ClientCertFriendlyName = "Client Certificate";
         public const string ClientCertTempName = "Temporary " + ClientCertFriendlyName;
+        public const int SyncTimeoutMillis = 2000;
     }
 }

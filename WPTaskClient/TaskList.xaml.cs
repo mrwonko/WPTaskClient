@@ -4,19 +4,12 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Networking;
 using Windows.Networking.Sockets;
 using Windows.Security.Cryptography.Certificates;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using WPTaskClient.Extensions;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -46,14 +39,14 @@ namespace WPTaskClient
             using (new ControlDisabler(ButtonSync))
             {
                 var settings = Storage.Settings.Load();
-                if(!settings.Valid)
+                if (!settings.Valid)
                 {
                     await new ErrorContentDialog("Sync not configured, please adjust settings.").ShowAsync();
                     return;
                 }
                 var certs = await CertificateStores.FindAllAsync(new CertificateQuery { FriendlyName = Constants.ClientCertFriendlyName });
                 var cert = certs.Where(c => c.HasPrivateKey).FirstOrDefault();
-                if( cert == null)
+                if (cert == null)
                 {
                     await new ErrorContentDialog("No client certificate configured, please adjust settings.").ShowAsync();
                     return;
@@ -62,9 +55,26 @@ namespace WPTaskClient
                 {
                     stream.Control.ClientCertificate = cert;
                     // TODO: Handle exceptions
-                    // TODO: add timeout https://docs.microsoft.com/en-us/previous-versions/windows/apps/jj710176(v=win.10)
-                    await stream.ConnectAsync(settings.Endpoint, SocketProtectionLevel.Tls12);
-                    // TODO: listen for response in background, see https://docs.microsoft.com/en-us/windows/uwp/launch-resume/support-your-app-with-background-tasks & https://docs.microsoft.com/en-us/windows/uwp/networking/network-communications-in-the-background
+                    try
+                    {
+                        await stream.ConnectAsync(settings.Endpoint, SocketProtectionLevel.Tls12).AsTask().WithTimeout(Constants.SyncTimeoutMillis);
+                        // TODO: listen for response in background, see https://docs.microsoft.com/en-us/windows/uwp/launch-resume/support-your-app-with-background-tasks & https://docs.microsoft.com/en-us/windows/uwp/networking/network-communications-in-the-background
+                        var request = new Protocol.Message(new Dictionary<string, string>
+                        {
+                            { "type", "statistics" },
+                            { "org", settings.Organization },
+                            { "user", settings.User },
+                            { "key", settings.Key },
+                            { "client", "WPTaskClient 0.1.0" },
+                            { "protocol", "v1" },
+                        }, "");
+                        await request.ToStream(stream.OutputStream.AsStreamForWrite()).WithTimeout(Constants.SyncTimeoutMillis);
+                        var response = await Protocol.Message.FromStream(stream.InputStream.AsStreamForRead()).WithTimeout(Constants.SyncTimeoutMillis);
+                    }
+                    catch (TimeoutException)
+                    {
+                        await new ErrorContentDialog("timeout during sync").ShowAsync();
+                    }
                 }
             }
         }

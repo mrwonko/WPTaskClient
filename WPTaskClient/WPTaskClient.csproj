@@ -105,12 +105,14 @@
     <Compile Include="ErrorContentDialog.xaml.cs">
       <DependentUpon>ErrorContentDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Extensions\Tasks.cs" />
     <Compile Include="FileChooser.xaml.cs">
       <DependentUpon>FileChooser.xaml</DependentUpon>
     </Compile>
     <Compile Include="NewTaskPage.xaml.cs">
       <DependentUpon>NewTaskPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Protocol\Message.cs" />
     <Compile Include="SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
@@ -175,9 +177,7 @@
       <Version>5.3.3</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Protocol\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
