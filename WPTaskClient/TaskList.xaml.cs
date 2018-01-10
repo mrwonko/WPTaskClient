@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.Networking.Sockets;
 using Windows.Security.Cryptography.Certificates;
 using Windows.UI.Xaml;
@@ -88,15 +89,30 @@ namespace WPTaskClient
         {
             base.OnNavigatedTo(e);
             // TODO handle failure
-            var tasks = await Storage.SqliteStorage.GetTasks();
-            // TODO: is there a simpler way?
-            this.tasks.Clear();
-            foreach (var task in tasks)
+            await UpdateTasks();
+        }
+
+        private bool updatingTasks = false;
+        async private Task UpdateTasks()
+        {
+            if (updatingTasks) { return; };
+            updatingTasks = true;
+            try
             {
-                if(task.Status != Data.TaskStatus.Deleted)
+                var tasks = await Storage.SqliteStorage.GetTasks();
+                // TODO: is there a simpler way?
+                this.tasks.Clear();
+                foreach (var task in tasks)
                 {
-                    this.tasks.Add(task);
+                    if (task.Status != Data.TaskStatus.Deleted)
+                    {
+                        this.tasks.Add(task);
+                    }
                 }
+            }
+            finally
+            {
+                updatingTasks = false;
             }
         }
     }
