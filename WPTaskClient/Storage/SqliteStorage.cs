@@ -27,7 +27,7 @@ namespace WPTaskClient.Storage
             }
         }
 
-        async public static Task UpsertTask(Data.Task task)
+        async public static Task UpsertTask(Data.Task task, bool addToBacklog = true)
         {
             var taskJsonString = task.ToJson().ToString();
             using (connection)
@@ -35,14 +35,41 @@ namespace WPTaskClient.Storage
                 // TODO: handle SqliteException
                 await connection.OpenAsync();
                 var tx = connection.BeginTransaction();
-                var insert = new SqliteCommand(@"
-                    INSERT OR REPLACE INTO tasks (uuid, task) VALUES (@uuid, @task);
-                    INSERT INTO sync_backlog(sync_key, task) VALUES((SELECT value FROM metadata WHERE key = 'sync_key'), @task);
-                ", connection, tx);
+                var sql = "INSERT OR REPLACE INTO tasks (uuid, task) VALUES (@uuid, @task);";
+                if (addToBacklog)
+                {
+                    sql += "\nINSERT INTO sync_backlog(sync_key, task) VALUES((SELECT value FROM metadata WHERE key = 'sync_key'), @task);";
+                }
+                var insert = new SqliteCommand(sql, connection, tx);
                 insert.Parameters.AddWithValue("@uuid", task.Uuid);
                 insert.Parameters.AddWithValue("@task", taskJsonString);
                 await insert.ExecuteNonQueryAsync();
                 tx.Commit();
+            }
+        }
+
+        async public static Task SetSyncKey(string syncKey)
+        {
+            using (connection)
+            {
+                await connection.OpenAsync();
+                var tx = connection.BeginTransaction();
+                var insert = new SqliteCommand("INSERT OR REPLACE INTO metadata (key, value) VALUES ('sync_key', @value);", connection, tx);
+                insert.Parameters.AddWithValue("@value", syncKey);
+                await insert.ExecuteNonQueryAsync();
+                tx.Commit();
+            }
+        }
+
+        async public static Task<string> GetSyncKey()
+        {
+            using (connection)
+            {
+                await connection.OpenAsync();
+                using (var reader = await new SqliteCommand("SELECT value FROM metadata WHERE key = 'sync_key';", connection).ExecuteReaderAsync())
+                {
+                    return await reader.ReadAsync() ? reader.GetString(0) : null;
+                }
             }
         }
 
@@ -52,11 +79,13 @@ namespace WPTaskClient.Storage
             {
                 // TODO: handle SqliteException
                 await connection.OpenAsync();
-                var reader = await new SqliteCommand("SELECT (task) FROM tasks", connection).ExecuteReaderAsync();
                 var builder = ImmutableList.CreateBuilder<Data.Task>();
-                while(await reader.ReadAsync())
+                using (var reader = await new SqliteCommand("SELECT (task) FROM tasks", connection).ExecuteReaderAsync())
                 {
-                    builder.Add(Data.Task.FromJson(Json.JsonObject.Parse(reader.GetString(0))));
+                    while (await reader.ReadAsync())
+                    {
+                        builder.Add(Data.Task.FromJson(Json.JsonObject.Parse(reader.GetString(0))));
+                    }
                 }
                 return builder.ToImmutable();
             }
