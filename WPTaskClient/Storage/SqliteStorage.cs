@@ -63,6 +63,29 @@ namespace WPTaskClient.Storage
             }
         }
 
+        async public static Task<Data.SyncBacklog> GetSyncBacklog()
+        {
+            using (connection)
+            {
+                await connection.OpenAsync();
+                string syncKey;
+                var tx = connection.BeginTransaction();
+                using (var reader = await new SqliteCommand("SELECT value FROM metadata WHERE key = 'sync_key';", connection, tx).ExecuteReaderAsync())
+                {
+                    syncKey = await reader.ReadAsync() ? reader.GetString(0) : null;
+                }
+                var select = new SqliteCommand("SELECT task FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
+                select.Parameters.AddWithValue("@syncKey", syncKey);
+                var tasks = await ReadTasks(await new SqliteCommand("SELECT (task) FROM tasks", connection).ExecuteReaderAsync());
+                tx.Commit();
+                return new Data.SyncBacklog
+                {
+                    SyncKey = syncKey,
+                    Tasks = tasks,
+                };
+            }
+        }
+
         async public static Task SetSyncKey(string syncKey)
         {
             using (connection)
@@ -76,31 +99,24 @@ namespace WPTaskClient.Storage
             }
         }
 
-        async public static Task<string> GetSyncKey()
-        {
-            using (connection)
-            {
-                await connection.OpenAsync();
-                using (var reader = await new SqliteCommand("SELECT value FROM metadata WHERE key = 'sync_key';", connection).ExecuteReaderAsync())
-                {
-                    return await reader.ReadAsync() ? reader.GetString(0) : null;
-                }
-            }
-        }
-
         async public static Task<ImmutableList<Data.Task>> GetTasks()
         {
             using (connection)
             {
                 // TODO: handle SqliteException
                 await connection.OpenAsync();
+                return await ReadTasks(await new SqliteCommand("SELECT (task) FROM tasks", connection).ExecuteReaderAsync());
+            }
+        }
+
+        async private static Task<ImmutableList<Data.Task>> ReadTasks(SqliteDataReader reader)
+        {
+            using (reader)
+            {
                 var builder = ImmutableList.CreateBuilder<Data.Task>();
-                using (var reader = await new SqliteCommand("SELECT (task) FROM tasks", connection).ExecuteReaderAsync())
+                while (await reader.ReadAsync())
                 {
-                    while (await reader.ReadAsync())
-                    {
-                        builder.Add(Data.Task.FromJson(Json.JsonObject.Parse(reader.GetString(0))));
-                    }
+                    builder.Add(Data.Task.FromJson(Json.JsonObject.Parse(reader.GetString(0))));
                 }
                 return builder.ToImmutable();
             }
