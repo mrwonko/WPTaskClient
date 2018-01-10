@@ -34,38 +34,17 @@ namespace WPTaskClient.Storage
             {
                 // TODO: handle SqliteException
                 await connection.OpenAsync();
-                var tx = connection.BeginTransaction();
-                var sql = "INSERT OR REPLACE INTO tasks (uuid, task) VALUES (@uuid, @task);";
-                if (addToBacklog)
-                {
-                    sql += "\nINSERT INTO sync_backlog(sync_key, task) VALUES ((SELECT value FROM metadata WHERE key = 'sync_key'), @task);";
-                }
-                var insert = new SqliteCommand(sql, connection, tx);
-                insert.Parameters.AddWithValue("@uuid", task.Uuid.ToString());
-                insert.Parameters.AddWithValue("@task", taskJsonString);
-                await insert.ExecuteNonQueryAsync();
-                tx.Commit();
-            }
-        }
-
-        async public static Task ClearSyncBacklog(string syncKey)
-        {
-            using (connection)
-            {
-                // TODO: handle SqliteException
-                await connection.OpenAsync();
                 using (var tx = connection.BeginTransaction())
                 {
-                    if (syncKey == null)
+                    var sql = "INSERT OR REPLACE INTO tasks (uuid, task) VALUES (@uuid, @task);";
+                    if (addToBacklog)
                     {
-                        await new SqliteCommand("DELETE FROM sync_backlog WHERE sync_key IS NULL;").ExecuteNonQueryAsync();
+                        sql += "\nINSERT INTO sync_backlog(sync_key, task) VALUES ((SELECT value FROM metadata WHERE key = 'sync_key'), @task);";
                     }
-                    else
-                    {
-                        var insert = new SqliteCommand("DELETE FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
-                        insert.Parameters.AddWithValue("@syncKey", ((object)syncKey) ?? DBNull.Value);
-                        await insert.ExecuteNonQueryAsync();
-                    }
+                    var insert = new SqliteCommand(sql, connection, tx);
+                    insert.Parameters.AddWithValue("@uuid", task.Uuid.ToString());
+                    insert.Parameters.AddWithValue("@task", taskJsonString);
+                    await insert.ExecuteNonQueryAsync();
                     tx.Commit();
                 }
             }
@@ -111,11 +90,37 @@ namespace WPTaskClient.Storage
             using (connection)
             {
                 await connection.OpenAsync();
-                var tx = connection.BeginTransaction();
-                var insert = new SqliteCommand("INSERT OR REPLACE INTO metadata (key, value) VALUES ('sync_key', @value);", connection, tx);
-                insert.Parameters.AddWithValue("@value", syncKey);
-                await insert.ExecuteNonQueryAsync();
-                tx.Commit();
+                using (var tx = connection.BeginTransaction())
+                {
+                    // this is somewhat annoying, but the cleanest way to handle it:
+                    // on our first sync, we send no local changes (because that isn't idempotent for whatever stupid reason), we only store the sync key
+                    // but that means we need to change the sync key on our existing sync backlog to stay idempotent
+                    // (thank god for transactions)
+                    // on subsequent syncs, we clear our sync backlog
+                    string oldSyncKey = null;
+                    var reader = await new SqliteCommand("SELECT value FROM metadata WHERE key = 'sync_key';", connection, tx).ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        oldSyncKey = reader.GetString(0);
+                        break;
+                    }
+                    if (oldSyncKey == null)
+                    {
+                        var update = new SqliteCommand("UPDATE sync_backlog SET sync_key = @syncKey WHERE sync_key IS NULL;", connection, tx);
+                        update.Parameters.AddWithValue("@syncKey", syncKey);
+                        await update.ExecuteNonQueryAsync();
+                    }
+                    else
+                    {
+                        var delete = new SqliteCommand("DELETE FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
+                        delete.Parameters.AddWithValue("@syncKey", syncKey);
+                        await delete.ExecuteNonQueryAsync();
+                    }
+                    var insert = new SqliteCommand("INSERT OR REPLACE INTO metadata (key, value) VALUES ('sync_key', @value);", connection, tx);
+                    insert.Parameters.AddWithValue("@value", syncKey);
+                    await insert.ExecuteNonQueryAsync();
+                    tx.Commit();
+                }
             }
         }
 
