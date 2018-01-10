@@ -10,7 +10,7 @@ namespace WPTaskClient.Data
     public class SyncBacklog
     {
         public string SyncKey;
-        public IImmutableList<Task> Tasks;
+        public IImmutableList<String> Tasks;
 
         public override string ToString()
         {
@@ -21,7 +21,7 @@ namespace WPTaskClient.Data
             }
             foreach(var task in Tasks)
             {
-                builder.AppendLine(task.ToJson().ToString());
+                builder.AppendLine(task);
             }
             return builder.ToString();
         }

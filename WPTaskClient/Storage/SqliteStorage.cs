@@ -67,21 +67,30 @@ namespace WPTaskClient.Storage
         {
             using (connection)
             {
-                await connection.OpenAsync();
                 string syncKey;
-                var tx = connection.BeginTransaction();
-                using (var reader = await new SqliteCommand("SELECT value FROM metadata WHERE key = 'sync_key';", connection, tx).ExecuteReaderAsync())
+                var tasksBuilder = ImmutableList.CreateBuilder<string>();
+                await connection.OpenAsync();
+                using (var tx = connection.BeginTransaction())
                 {
-                    syncKey = await reader.ReadAsync() ? reader.GetString(0) : null;
+                    using (var reader = await new SqliteCommand("SELECT value FROM metadata WHERE key = 'sync_key';", connection, tx).ExecuteReaderAsync())
+                    {
+                        syncKey = await reader.ReadAsync() ? reader.GetString(0) : null;
+                    }
+                    var select = new SqliteCommand("SELECT task FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
+                    select.Parameters.AddWithValue("@syncKey", syncKey);
+                    using (var reader = await select.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            tasksBuilder.Add(reader.GetString(0));
+                        }
+                    }
+                    tx.Commit();
                 }
-                var select = new SqliteCommand("SELECT task FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
-                select.Parameters.AddWithValue("@syncKey", syncKey);
-                var tasks = await ReadTasks(await new SqliteCommand("SELECT (task) FROM tasks", connection).ExecuteReaderAsync());
-                tx.Commit();
                 return new Data.SyncBacklog
                 {
                     SyncKey = syncKey,
-                    Tasks = tasks,
+                    Tasks = tasksBuilder.ToImmutable(),
                 };
             }
         }
