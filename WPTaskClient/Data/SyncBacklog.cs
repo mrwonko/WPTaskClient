@@ -17,11 +17,13 @@ namespace WPTaskClient.Data
             var builder = new StringBuilder();
             if(SyncKey != null && SyncKey != "")
             {
-                builder.AppendLine(SyncKey);
+                builder.Append(SyncKey);
+                builder.Append('\n'); // not using AppendLine because we want LF, not CRLF -.-
             }
             foreach(var task in Tasks)
             {
-                builder.AppendLine(task);
+                builder.Append(task);
+                builder.Append('\n');
             }
             return builder.ToString();
         }
