@@ -11,6 +11,6 @@
     DefaultButton="Primary">
 
     <StackPanel>
-        <TextBlock TextWrapping="WrapWholeWords" Name="errorText"></TextBlock>
+        <TextBlock TextWrapping="Wrap" Name="errorText"></TextBlock>
     </StackPanel>
 </ContentDialog>
