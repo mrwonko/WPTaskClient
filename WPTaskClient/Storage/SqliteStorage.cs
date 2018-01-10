@@ -38,7 +38,7 @@ namespace WPTaskClient.Storage
                 var sql = "INSERT OR REPLACE INTO tasks (uuid, task) VALUES (@uuid, @task);";
                 if (addToBacklog)
                 {
-                    sql += "\nINSERT INTO sync_backlog(sync_key, task) VALUES((SELECT value FROM metadata WHERE key = 'sync_key'), @task);";
+                    sql += "\nINSERT INTO sync_backlog(sync_key, task) VALUES ((SELECT value FROM metadata WHERE key = 'sync_key'), @task);";
                 }
                 var insert = new SqliteCommand(sql, connection, tx);
                 insert.Parameters.AddWithValue("@uuid", task.Uuid.ToString());
@@ -54,12 +54,20 @@ namespace WPTaskClient.Storage
             {
                 // TODO: handle SqliteException
                 await connection.OpenAsync();
-                var tx = connection.BeginTransaction();
-                var sql = "DELETE FROM sync_backlog WHERE sync_key = @syncKey;";
-                var insert = new SqliteCommand(sql, connection, tx);
-                insert.Parameters.AddWithValue("@syncKey", syncKey);
-                await insert.ExecuteNonQueryAsync();
-                tx.Commit();
+                using (var tx = connection.BeginTransaction())
+                {
+                    if (syncKey == null)
+                    {
+                        await new SqliteCommand("DELETE FROM sync_backlog WHERE sync_key IS NULL;").ExecuteNonQueryAsync();
+                    }
+                    else
+                    {
+                        var insert = new SqliteCommand("DELETE FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
+                        insert.Parameters.AddWithValue("@syncKey", ((object)syncKey) ?? DBNull.Value);
+                        await insert.ExecuteNonQueryAsync();
+                    }
+                    tx.Commit();
+                }
             }
         }
 
@@ -76,8 +84,11 @@ namespace WPTaskClient.Storage
                     {
                         syncKey = await reader.ReadAsync() ? reader.GetString(0) : null;
                     }
-                    var select = new SqliteCommand("SELECT task FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
-                    select.Parameters.AddWithValue("@syncKey", ((object)syncKey) ?? DBNull.Value);
+                    var select = new SqliteCommand("SELECT task FROM sync_backlog WHERE sync_key " + (syncKey == null ? "IS NULL;" : "= @syncKey;"), connection, tx);
+                    if (syncKey != null)
+                    {
+                        select.Parameters.AddWithValue("@syncKey", ((object)syncKey) ?? DBNull.Value);
+                    }
                     using (var reader = await select.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
