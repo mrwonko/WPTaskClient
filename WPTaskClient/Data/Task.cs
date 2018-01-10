@@ -8,6 +8,15 @@ using Json = Windows.Data.Json;
 
 namespace WPTaskClient.Data
 {
+    public enum TaskStatus
+    {
+        Pending,
+        Deleted,
+        Completed,
+        Waiting,
+        Recurring,
+    }
+
     public class Task
     {
         public class ByLastModified : IComparer<Task>
@@ -18,26 +27,17 @@ namespace WPTaskClient.Data
             }
         }
 
-        public enum Status
-        {
-            Pending,
-            Deleted,
-            Completed,
-            Waiting,
-            Recurring,
-        }
-
-        private static readonly ImmutableDictionary<string, Status> statusLUT = new Dictionary<string, Status>
+        private static readonly ImmutableDictionary<string, TaskStatus> statusLUT = new Dictionary<string, TaskStatus>
             {
-                { "pending", Status.Pending },
-                { "deleted", Status.Deleted },
-                { "completed", Status.Completed },
-                { "waiting", Status.Waiting },
-                { "recurring", Status.Recurring },
+                { "pending", TaskStatus.Pending },
+                { "deleted", TaskStatus.Deleted },
+                { "completed", TaskStatus.Completed },
+                { "waiting", TaskStatus.Waiting },
+                { "recurring", TaskStatus.Recurring },
             }.ToImmutableDictionary();
 
         private readonly Guid uuid;
-        private readonly Status status;
+        private readonly TaskStatus status;
         private readonly String description;
         private readonly Timestamp entered;
         private readonly Timestamp lastModified;
@@ -53,8 +53,9 @@ namespace WPTaskClient.Data
 
         public Guid Uuid => uuid;
         public string Description => description;
+        public TaskStatus Status => status;
 
-        public Task(Guid uuid, Status status, string description, Timestamp entered, Timestamp lastModified, ImmutableList<string> tags, ImmutableDictionary<string, Json.IJsonValue> additionalAttributes)
+        public Task(Guid uuid, TaskStatus status, string description, Timestamp entered, Timestamp lastModified, ImmutableList<string> tags, ImmutableDictionary<string, Json.IJsonValue> additionalAttributes)
         {
             if (description == "")
             {
@@ -76,7 +77,7 @@ namespace WPTaskClient.Data
         public static Task New(string description, ImmutableList<string> tags)
         {
             var now = Timestamp.Now;
-            return new Task(Guid.NewGuid(), Status.Pending, description, now, now, tags, noAdditionalAttributes);
+            return new Task(Guid.NewGuid(), TaskStatus.Pending, description, now, now, tags, noAdditionalAttributes);
         }
 
         public static Task FromJson(Json.JsonObject json)

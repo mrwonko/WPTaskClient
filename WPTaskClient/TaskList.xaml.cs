@@ -93,7 +93,10 @@ namespace WPTaskClient
             this.tasks.Clear();
             foreach (var task in tasks)
             {
-                this.tasks.Add(task);
+                if(task.Status != Data.TaskStatus.Deleted)
+                {
+                    this.tasks.Add(task);
+                }
             }
         }
     }

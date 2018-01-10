@@ -24,7 +24,7 @@ namespace WPTaskClientTests
                 { "estimate", Json.JsonValue.CreateStringValue("1w")}
             }.ToImmutableDictionary();
             // when
-            var entry = new WPTaskClient.Data.Task(Guid.Parse(rawUUID), WPTaskClient.Data.Task.Status.Pending, description, enteredDate, modifiedDate, tags, additionalAttributes);
+            var entry = new WPTaskClient.Data.Task(Guid.Parse(rawUUID), WPTaskClient.Data.TaskStatus.Pending, description, enteredDate, modifiedDate, tags, additionalAttributes);
             var json = entry.ToJson();
             // then
             var expectedJson = new Json.JsonObject()
