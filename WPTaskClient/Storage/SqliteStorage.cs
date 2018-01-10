@@ -41,7 +41,7 @@ namespace WPTaskClient.Storage
                     sql += "\nINSERT INTO sync_backlog(sync_key, task) VALUES((SELECT value FROM metadata WHERE key = 'sync_key'), @task);";
                 }
                 var insert = new SqliteCommand(sql, connection, tx);
-                insert.Parameters.AddWithValue("@uuid", task.Uuid);
+                insert.Parameters.AddWithValue("@uuid", task.Uuid.ToString());
                 insert.Parameters.AddWithValue("@task", taskJsonString);
                 await insert.ExecuteNonQueryAsync();
                 tx.Commit();
@@ -77,7 +77,7 @@ namespace WPTaskClient.Storage
                         syncKey = await reader.ReadAsync() ? reader.GetString(0) : null;
                     }
                     var select = new SqliteCommand("SELECT task FROM sync_backlog WHERE sync_key = @syncKey;", connection, tx);
-                    select.Parameters.AddWithValue("@syncKey", syncKey);
+                    select.Parameters.AddWithValue("@syncKey", ((object)syncKey) ?? DBNull.Value);
                     using (var reader = await select.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
