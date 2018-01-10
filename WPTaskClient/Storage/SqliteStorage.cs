@@ -48,6 +48,21 @@ namespace WPTaskClient.Storage
             }
         }
 
+        async public static Task ClearSyncBacklog(string syncKey)
+        {
+            using (connection)
+            {
+                // TODO: handle SqliteException
+                await connection.OpenAsync();
+                var tx = connection.BeginTransaction();
+                var sql = "DELETE FROM sync_backlog WHERE sync_key = @syncKey;";
+                var insert = new SqliteCommand(sql, connection, tx);
+                insert.Parameters.AddWithValue("@syncKey", syncKey);
+                await insert.ExecuteNonQueryAsync();
+                tx.Commit();
+            }
+        }
+
         async public static Task SetSyncKey(string syncKey)
         {
             using (connection)
