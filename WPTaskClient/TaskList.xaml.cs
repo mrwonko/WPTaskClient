@@ -104,7 +104,7 @@ namespace WPTaskClient
                 this.tasks.Clear();
                 foreach (var task in tasks)
                 {
-                    if (task.Status != Data.TaskStatus.Deleted)
+                    if (task.Status != Data.TaskStatus.Deleted && task.Status != Data.TaskStatus.Completed)
                     {
                         this.tasks.Add(task);
                     }
